@@ -21,12 +21,16 @@
 	<key>PlexFrameworkVersion</key>
 	<string>1</string>
 	<key>PlexMediaContainer</key>
-	<string>MP4</string>
+	<array>
+		<string>MP4</string>
+	</array>
 	<key>PlexPluginDebug</key>
 	<string>1</string>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
 	<key>PlexVideoCodec</key>
-	<string>H.264</string>
+	<array>
+		<string>H.264</string>
+	</array>
 </dict>
 </plist>
