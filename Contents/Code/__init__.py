@@ -1,6 +1,4 @@
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
+
 import re
 
 AMT_PLUGIN_PREFIX   = "/video/amt"
@@ -18,11 +16,8 @@ def Start():
   MediaContainer.userAgent = 'Apple Mac OS X v10.6.1 CoreMedia v1.0.0.10B504'
   DirectoryItem.thumb = R('icon-default.png')
   MediaContainer.art = R('art-default.png')
-  HTTP.SetCacheTime(7200)
+  HTTP.CacheTime = 7200
   
-####################################################################################################
-def CreatePrefs():
-  Prefs.Add(id='VideoQuality', type='enum', default='Small', label='Video Quality', values='1080p|720p|480p|Large|Medium|Small')
 
 ####################################################################################################
 def MainMenu():
@@ -33,7 +28,7 @@ def MainMenu():
     dir.Append(Function(DirectoryItem(JSONMenu, title="Most Popular"), name="most_pop"))
     dir.Append(Function(DirectoryItem(GenresMenu, title="Genres")))
     dir.Append(Function(DirectoryItem(StudiosMenu, title="Movie Studios")))
-    dir.Append(Function(SearchDirectoryItem(Search, title="Search trailers", prompt="Search for movie trailer", thumb=R("search.png"))))
+    dir.Append(Function(InputDirectoryItem(Search, title="Search trailers", prompt="Search for movie trailer", thumb=R("search.png"))))
     dir.Append(PrefsItem(title="Preferences"))
     return dir
 
@@ -85,7 +80,7 @@ def StudioMenu(sender, query=None):
 
 ####################################################################################################
 def Search(sender, query):
-  callback = HTTP.Request(AMT_SEARCH_URL % String.Quote(query))
+  callback = HTTP.Request(AMT_SEARCH_URL % String.Quote(query)).content
   if callback is None: return None
   callback = callback.lstrip("searchCallback(")[:-3]
   d = JSON.ObjectFromString(callback)
@@ -115,6 +110,7 @@ def ContainerFromJSONName(jsonName):
 ####################################################################################################
 def getTrailers(html):
   # First look for trailers.
+  html = str(html)
   trailers = re.findall('"(http://[^"]+tlr[^"]+[1-9][0-9]+[a-z]?\.mov[^"]*)"', html)
   if len(trailers) == 0:
     trailers = re.findall('"(http://[^"]+[1-9][0-9]+[a-z]?\.mov[^"]*)"', html)
@@ -133,7 +129,7 @@ def getTrailers(html):
 ####################################################################################################
 def getVideo(sender, url):
   url = url + "/includes/playlists/web.inc"
-  userQuality = Prefs.Get("VideoQuality")
+  userQuality = Prefs["VideoQuality"]
 
   order = ['1080p', '720p', '480p', '640w', '480', '320']
   prefMap = {'1080p':'1080p', '720p':'720p', '480p':'480p', 'Large':'640w', 'Medium':'480', 'Small':'320' }
