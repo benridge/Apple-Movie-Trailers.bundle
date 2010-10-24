@@ -11,13 +11,15 @@ AMT_SEARCH_URL      = "http://trailers.apple.com/trailers/home/scripts/quickfind
 def Start():
   # Curent artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
   Plugin.AddPrefixHandler(AMT_PLUGIN_PREFIX, MainMenu, L('Apple Movie Trailers'), 'icon-default.png', 'art-default.jpg')
+  Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   MediaContainer.title1 = 'Apple Movie Trailers'
-  MediaContainer.content = 'Items'
   MediaContainer.userAgent = 'Apple Mac OS X v10.6.1 CoreMedia v1.0.0.10B504'
-  DirectoryItem.thumb = R('icon-default.png')
+  MediaContainer.viewGroup = 'List'
   MediaContainer.art = R('art-default.jpg')
+  DirectoryItem.thumb = R('icon-default.png')
   HTTP.CacheTime = 7200
-  
+  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.11) Gecko/20101012 Firefox/3.6.11'
+
 
 ####################################################################################################
 def MainMenu():
@@ -28,8 +30,8 @@ def MainMenu():
     dir.Append(Function(DirectoryItem(JSONMenu, title="Most Popular"), name="most_pop"))
     dir.Append(Function(DirectoryItem(GenresMenu, title="Genres")))
     dir.Append(Function(DirectoryItem(StudiosMenu, title="Movie Studios")))
-    dir.Append(Function(InputDirectoryItem(Search, title="Search trailers", prompt="Search for movie trailer", thumb=R("search.png"))))
-    dir.Append(PrefsItem(title="Preferences"))
+    dir.Append(Function(InputDirectoryItem(Search, title="Search trailers", prompt="Search for movie trailer", thumb=R("icon-search.png"))))
+    dir.Append(PrefsItem(title="Preferences", thumb=R("icon-prefs.png")))
     return dir
 
 def JSONMenu(sender, name, query=None):
