@@ -89,7 +89,7 @@ def Search(sender, query):
   dir = MediaContainer(title1="Search", title2=sender.itemTitle)
   for item in d["results"]:
     if item["location"].find("phobos.apple.com") == -1:
-      thumb = item["poster"]
+      thumb = AMT_SITE_URL + item["poster"]
       dir.Append(Function(VideoItem(getVideo, title=item["title"], thumb=thumb), url=AMT_SITE_URL + item["location"]))
   if len(dir) == 0:
     dir.Append(DirectoryItem("%s/search" % AMT_PLUGIN_PREFIX, "(No Results)", ""))
