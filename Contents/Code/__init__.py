@@ -18,7 +18,7 @@ ORDER    = ['1080p', '720p', '480p', '640w', '480', '320']
 
 def Start():
   # Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
-  Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', ICON_DEFAULT, ART)
+  Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', 'icon-default.png', ART)
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
