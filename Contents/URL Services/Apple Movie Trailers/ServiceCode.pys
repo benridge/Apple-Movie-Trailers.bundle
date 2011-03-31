@@ -4,7 +4,6 @@ HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; 
 AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
 
 ####################################################################################################
-
 def MetadataObjectForURL(url):
   studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)#?(.+)?$', url)[0]
   if not video: video = 'index'
@@ -25,7 +24,6 @@ def MetadataObjectForURL(url):
   )
 
 ####################################################################################################
-
 def MediaObjectsForURL(url):
   studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)/?#?(.+)?$', url)[0]
   if not video: video = 'index'
@@ -42,7 +40,7 @@ def MediaObjectsForURL(url):
     if ipod:
       platforms = [ClientPlatform.iOS, ClientPlatform.Android]
     else:
-#      platforms = [ClientPlatform.MacOSX]
+      #platforms = [ClientPlatform.MacOSX]
       platforms = []
 
     mo = MediaObject(
@@ -63,7 +61,6 @@ def MediaObjectsForURL(url):
   return items
 
 ####################################################################################################
-
 def VideoInfo(url):
   container = 'mov'
   if url.endswith('.m4v'):
