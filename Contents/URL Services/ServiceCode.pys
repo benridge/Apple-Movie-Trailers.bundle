@@ -18,7 +18,7 @@ def MetadataObjectForURL(url):
 ####################################################################################################
 
 def MediaObjectsForURL(url):
-  studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)#?(.+)?$', url)[0]
+  studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)/?#?(.+)?$', url)[0]
   if not video: video = 'index'
   url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
 
