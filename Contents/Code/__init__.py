@@ -2,33 +2,30 @@ import re
 
 AMT_SITE_URL   = 'http://trailers.apple.com'
 AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
-AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
+AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?callback=searchCallback&q=%s'
 AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
 AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
 
 ART          = 'art-default.jpg'
-ICON_DEFAULT = 'logo.png'
+ICON_DEFAULT = 'icon-default.png'
 ICON_SEARCH  = 'icon-search.png'
 ICON_PREFS   = 'icon-prefs.png'
-
-PREF_MAP = {'1080p':'1080p', '720p':'720p', '480p':'480p', 'Large':'640w', 'Medium':'480', 'Small':'320'}
-ORDER    = ['1080p', '720p', '480p', '640w', '480', '320']
 
 ####################################################################################################
 
 def Start():
   # Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
-  Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', 'icon-default.png', ART)
+  Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', ICON_DEFAULT, ART)
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
-  MediaContainer.title1 = 'Apple Movie Trailers'
-  MediaContainer.userAgent = 'Apple Mac OS X v10.6.7 CoreMedia v1.0.0.10J869'
-  MediaContainer.art = R(ART)
-  MediaContainer.viewGroup = 'List'
+  ObjectContainer.title1 = 'Apple Movie Trailers'
+  ObjectContainer.userAgent = 'Apple Mac OS X v10.6.7 CoreMedia v1.0.0.10J869'
+  ObjectContainer.content = ContainerContent.GenericVideos
+  ObjectContainer.art = R(ART)
 
-  DirectoryItem.thumb = R(ICON_DEFAULT)
-  VideoItem.thumb = R(ICON_DEFAULT)
+  DirectoryObject.thumb = R(ICON_DEFAULT)
+  VideoClipObject.thumb = R(ICON_DEFAULT)
 
   HTTP.CacheTime = 7200
   HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
@@ -36,154 +33,119 @@ def Start():
 ####################################################################################################
 
 def MainMenu():
-  dir = MediaContainer()
+  oc = ObjectContainer(viewGroup='List')
 
-  dir.Append(Function(DirectoryItem(JsonMenu, title='Just Added'), name='just_added'))
-  dir.Append(Function(DirectoryItem(JsonMenu, title='Exclusive'), name='exclusive'))
-  dir.Append(Function(DirectoryItem(JsonMenu, title='Just HD', thumb=R('thumb-just_hd.png')), name='just_hd'))
-  dir.Append(Function(DirectoryItem(JsonMenu, title='Most Popular'), name='most_pop'))
-  dir.Append(Function(DirectoryItem(GenresMenu, title='Genres')))
-  dir.Append(Function(DirectoryItem(StudiosMenu, title='Movie Studios')))
-  dir.Append(Function(InputDirectoryItem(Search, title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH))))
-  dir.Append(PrefsItem(title='Preferences', thumb=R(ICON_PREFS)))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title='Just Added'))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='exclusive'), title='Exclusive'))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title='Just HD', thumb=R(ICON_PREFS)))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title='Most Popular'))
+#  oc.add(DirectoryObject(key=Callback(GenresMenu), title='Genres'))
+#  oc.add(DirectoryObject(key=Callback(StudiosMenu), title='Movie Studios'))
+#  oc.add(InputDirectoryObject(key=Callback(Search), title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
+#  oc.add(PrefsObject(title='Preferences', thumb=R(ICON_PREFS)))
 
-  return dir
+  return oc
 
 ####################################################################################################
 
-def JsonMenu(sender, name):
-  dir = MediaContainer(title2=sender.itemTitle)
+def JsonMenu(name):
+  oc = ObjectContainer(viewGroup='List', title2=L(name))
 
   for trailer in JSON.ObjectFromURL(AMT_JSON_URL % name):
     url   = trailer['location']
     title = trailer['title']
-    thumb = trailer['poster']
-    dir.Append(Function(DirectoryItem(Videos, title=title, thumb=Function(Thumb, url=thumb)), url=url, thumb=thumb))
+    thumb = trailer['poster'].replace('.jpg', '-large.jpg')
 
-  return dir
+    oc.add(DirectoryObject(key=Callback(Videos, url=url, title=title), title=title, thumb=Callback(Thumb, url=thumb)))
 
-####################################################################################################
-
-def GenresMenu(sender):
-  dir = MediaContainer(title2='Genres')
-  genres = []
-  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'genres'):
-    for genre in trailer['genre']:
-      if genre not in genres:
-        genres.append(genre)
-  genres.sort()
-  for genre in genres:
-    dir.Append(Function(DirectoryItem(GenreMenu, title=genre)))
-
-  return dir
+  return oc
 
 ####################################################################################################
 
-def GenreMenu(sender):
-  dir = MediaContainer(title2=sender.itemTitle)
+def Videos(url, title):
+  oc = ObjectContainer(viewGroup='InfoList', title2=title)
 
-  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'genres'):
-    if sender.itemTitle in trailer['genre']:
-      url   = trailer['location']
-      title = trailer['title']
-      thumb = trailer['poster']
-      dir.Append(Function(DirectoryItem(Videos, title=title, thumb=Function(Thumb, url=thumb)), url=url, thumb=thumb))
+  url = AMT_VIDEOS % (url.replace('trailers', 's'))
+  xml = XML.ElementFromURL(url, errors='ignore')
 
-  return dir
-
-####################################################################################################
-
-def StudiosMenu(sender):
-  dir = MediaContainer(title2='Studios')
-  studios = []
-  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'studios'):
-    if trailer['studio'] not in studios:
-      studios.append(trailer['studio'])
-  studios.sort()
-  for studio in studios:
-    dir.Append(Function(DirectoryItem(StudioMenu, title=studio)))
-
-  return dir
-
-####################################################################################################
-
-def StudioMenu(sender):
-  dir = MediaContainer(title2=sender.itemTitle)
-  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'studios'):
-    if trailer['studio'] == sender.itemTitle:
-      url   = trailer['location']
-      title = trailer['title']
-      thumb = trailer['poster']
-      dir.Append(Function(DirectoryItem(Videos, title=title, thumb=Function(Thumb, url=thumb)), url=url, thumb=thumb))
-
-  return dir
-
-####################################################################################################
-
-def Search(sender, query):
-  dir = MediaContainer(title2=sender.itemTitle)
-
-  for trailer in JSON.ObjectFromURL(AMT_SEARCH_URL % String.Quote(query))['results']:
-    url   = trailer['location']
-    title = trailer['title'].replace('%u2019', "'")
-    thumb = AMT_SITE_URL + trailer['poster']
-    dir.Append(Function(DirectoryItem(Videos, title=title, thumb=Function(Thumb, url=thumb)), url=url, thumb=thumb))
-
-  if len(dir) == 0:
-    return MessageContainer('No results', 'Your search query didn\'t return any matches')
-  else:
-    return dir
-
-####################################################################################################
-
-def Videos(sender, url, thumb):
-  dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
-
-  xml = XML.ElementFromURL(AMT_VIDEOS % url.replace('trailers', 's'), errors='ignore')
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
     title = video.xpath('.//parent::a:HBoxView//a:b', namespaces=AMT_VIDEOS_NS)[0].text
     url = AMT_SITE_URL + video.get('url')
-    dir.Append(Function(VideoItem(PlayVideo, title=title, summary=summary, thumb=Function(Thumb, url=thumb)), url=url))
+    media_objects = []
 
-  return dir
+    for res in XML.ElementFromURL(url).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
+      duration = res.xpath('./a:key[text()="duration"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
+      video_url = res.xpath('./a:key[text()="previewURL"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
+      Log(video_url)
+
+      (container, ipod, video_resolution) = VideoInfo(video_url)
+
+      if ipod:
+        platforms = [ClientPlatform.iOS, ClientPlatform.Android]
+      else:
+        platforms = []
+#        platforms = [ClientPlatform.MacOSX]
+
+      mo = MediaObject(
+        parts = [
+          PartObject(key=video_url)
+        ],
+        protocols = [Protocol.HTTPMP4Streaming],
+        platforms = platforms,
+        container = container,
+        video_codec = VideoCodec.H264,
+        audio_codec = AudioCodec.AAC,
+        video_resolution = video_resolution,
+        duration = int(duration)
+      )
+      media_objects.append(mo)
+
+    oc.add(VideoClipObject(
+      title = title,
+      summary = summary,
+      items = media_objects,
+      ratingKey = url,
+      key = "1"
+    ))
+
+  return oc
+
+####################################################################################################
+def PlayVideo(url):
+  return Redirect(url)
 
 ####################################################################################################
 
-def PlayVideo(sender, url):
-  user_quality = Prefs['VideoQuality']
-  pref_value = PREF_MAP[user_quality]
-  available = {}
+def VideoInfo(url):
+  container = 'mov'
+  if url.endswith('.m4v'):
+    container = 'm4v'
 
-  for res in XML.ElementFromURL(url).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
-    video_url = res.xpath('./a:key[text()="previewURL"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
-    q = re.search('_h(320|480|640w|480p|720p|1080p)\.mov$', video_url)
-    if q:
-      q = q.group(1)
-      if q in ORDER:
-        available[q] = video_url
+  ipod = False
+  if re.search('_i([0-9]+)\.(m4v|mov)$', url):
+    ipod = True
 
-  for i in range(ORDER.index(pref_value), len(ORDER)):
-    quality = ORDER[i]
-    if quality in available:
-      video_url = available[quality]
-      break
+  resolution = re.search('_(h|i)([0-9]+)(w|p)?\.(mov|m4v)', url)
+  if resolution.group(3) == 'p':
+    video_resolution = resolution.group(2)
+  elif resolution.group(1) == 'i' and resolution.group(2) == '320':
+    video_resolution = 360 # Apple's i320 is actually 640
+  else:
+    width = int(resolution.group(2))
+    video_resolution = int((width/16)*9)
 
-  return Redirect(video_url)
+  return [container, ipod, str(video_resolution)]
 
 ####################################################################################################
 
 def Thumb(url):
   try:
-    large_thumb = url.replace('.jpg', '-large.jpg')
-    data = HTTP.Request(large_thumb, cacheTime=CACHE_1MONTH).content
+    data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
     return DataObject(data, 'image/jpeg')
   except:
-    try:
-      data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-      return DataObject(data, 'image/jpeg')
-    except:
-      pass
+    return Redirect(R(ICON_DEFAULT))
 
-  return Redirect(R(ICON_DEFAULT))
+####################################################################################################
+
