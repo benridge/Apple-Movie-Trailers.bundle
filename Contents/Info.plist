@@ -39,5 +39,15 @@
 	<string>0</string>
 	<key>PlexPluginDevMode</key>
 	<string>0</string>
+	<key>PlexURLServices</key>
+	<dict>
+		<key>Vimeo</key>
+		<dict>
+		  <key>URLPattern</key>
+  		<string>http://.*apple\.com/.*</string>
+  		<key>LinkedPlugin</key>
+  		<string>com.plexapp.plugins.amt</string>
+		</dict>
+	</dict>
 </dict>
 </plist>
