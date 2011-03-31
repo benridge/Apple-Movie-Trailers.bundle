@@ -16,7 +16,7 @@ def MetadataObjectForURL(url):
     title = video.xpath('.//parent::a:HBoxView//a:b', namespaces=AMT_VIDEOS_NS)[0].text
 
   # Construct a metadata item
-  return VideoClipObject(
+  return MovieObject(
     title = title,
     summary = summary,
     tagline = '',

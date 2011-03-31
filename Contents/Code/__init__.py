@@ -62,6 +62,9 @@ def Videos(url, title):
   url = AMT_VIDEOS % (url.replace('trailers', 's'))
   xml = XML.ElementFromURL(url, errors='ignore')
 
+  oc.mediaTagVersion = 32423424;
+  oc.mediaTagPrefix = "/system/bundle/media/flags/"
+
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
     
     # Figure out the override title.
