@@ -44,6 +44,8 @@ def MainMenu():
 #  oc.add(InputDirectoryObject(key=Callback(Search), title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
 #  oc.add(PrefsObject(title='Preferences', thumb=R(ICON_PREFS)))
 
+  oc.add(URLService.MetadataObjectForURL('http://trailers.apple.com/trailers/independent/truelegend'))
+
   return oc
 
 ####################################################################################################

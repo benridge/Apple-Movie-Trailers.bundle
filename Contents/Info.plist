@@ -41,7 +41,7 @@
 	<string>0</string>
 	<key>PlexURLServices</key>
 	<dict>
-		<key>Vimeo</key>
+		<key>Apple Movie Trailers</key>
 		<dict>
 		  <key>URLPattern</key>
   		<string>http://.*apple\.com/.*</string>
