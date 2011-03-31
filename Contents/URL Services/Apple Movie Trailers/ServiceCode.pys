@@ -8,14 +8,20 @@ AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
 def MetadataObjectForURL(url):
   studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)#?(.+)?$', url)[0]
   if not video: video = 'index'
+
   url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
+  xml = XML.ElementFromURL(url, errors='ignore')
+  summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
+
+  for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
+    title = video.xpath('.//parent::a:HBoxView//a:b', namespaces=AMT_VIDEOS_NS)[0].text
 
   # Construct a metadata item
   return VideoClipObject(
-    title = 'title',
-    summary = 'summary',
-    tagline = 'tagline',
-    thumb = 'thumb'
+    title = title,
+    summary = summary,
+    tagline = '',
+    thumb = ''
   )
 
 ####################################################################################################
