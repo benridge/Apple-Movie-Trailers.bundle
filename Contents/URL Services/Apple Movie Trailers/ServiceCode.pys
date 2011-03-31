@@ -58,6 +58,7 @@ def MediaObjectsForURL(url):
 
     items.append(mo)
 
+  items.reverse()
   return items
 
 ####################################################################################################
