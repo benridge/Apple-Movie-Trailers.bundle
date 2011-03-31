@@ -1,0 +1,31 @@
+def MetadataObjectForURL(url):
+  # Construct a metadata item
+  #return VideoClipObject(
+  #  title = title,
+  #  summary = summary,
+  #  tagline = tagline,
+  #  thumb = thumb
+  #)
+  return None
+  
+def MediaObjectsForURL(url):
+  items = [
+    #MediaObject(
+    #  parts = [PartObject(key=Callback(PlayVideoIndirect, url=url, format='hd', codecs='H264'))],
+    #  protocols = [Protocol.HTTPMP4Video],
+    #  platforms = [ClientPlatform.iOS],
+    #  video_codec = VideoCodec.H264,
+    #  video_resolution = 720,
+    #  audio_codec = AudioCodec.AAC,
+    #),
+    
+    #MediaObject(
+    #  parts = [PartObject(key=Callback(PlayVideoIndirect, url=url, format='mobile', codecs=None))],
+    #  protocols = [Protocol.HTTPMP4Video],
+    #  platforms = [ClientPlatform.iOS],
+    #  video_codec = VideoCodec.H264,
+    #  video_resolution = 480,
+    #  audio_codec = AudioCodec.AAC,
+    #),
+  ]
+  return items
