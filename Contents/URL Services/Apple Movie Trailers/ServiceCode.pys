@@ -1,15 +1,11 @@
 import re
 
-HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
+HTTP.Headers['User-Agent'] = 'iTunes/10.2.1'
 AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
 
 ####################################################################################################
 def MetadataObjectForURL(url):
-  studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)#?(.+)?$', url)[0]
-  if not video: video = 'index'
-
-  url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
-  xml = XML.ElementFromURL(url, errors='ignore')
+  xml = XML.ElementFromURL(BuildXmlUrl(url), cacheTime=7200, errors='ignore')
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
@@ -25,17 +21,13 @@ def MetadataObjectForURL(url):
 
 ####################################################################################################
 def MediaObjectsForURL(url):
-  studio, title, video = re.findall('^http:\/\/trailers.apple.com/trailers/([^/]+)/([^/#]+)/?#?(.+)?$', url)[0]
-  if not video: video = 'index'
-  url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
-
   items = []
 
-  for video in XML.ElementFromURL(url, cacheTime=7200).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
+  for video in XML.ElementFromURL(BuildXmlUrl(url), cacheTime=7200, errors='ignore').xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
     duration = video.xpath('./a:key[text()="duration"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
     video_url = video.xpath('./a:key[text()="previewURL"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
 
-    container, ipod, video_resolution = VideoInfo(video_url)
+    ipod, container, video_resolution = VideoInfo(video_url)
 
     if ipod:
       platforms = [ClientPlatform.iOS, ClientPlatform.Android]
@@ -58,26 +50,34 @@ def MediaObjectsForURL(url):
 
     items.append(mo)
 
-  items.reverse()
-  return items
+  return items.reverse()
 
 ####################################################################################################
 def VideoInfo(url):
-  container = 'mov'
-  if url.endswith('.m4v'):
-    container = 'm4v'
-
   ipod = False
   if re.search('_i([0-9]+)\.(m4v|mov)$', url):
     ipod = True
 
+  container = 'mov'
+  if url.endswith('.m4v'):
+    container = 'm4v'
+
+  # For HD videos: use the given height (480, 720, 1080)
+  # For SD videos: use a 16x9 AR when calculating the approximate height of a video for videos we know the width of
   resolution = re.search('_(h|i)([0-9]+)(w|p)?\.(mov|m4v)', url)
   if resolution.group(3) == 'p':
     video_resolution = resolution.group(2)
   elif resolution.group(1) == 'i' and resolution.group(2) == '320':
-    video_resolution = 360 # Apple's i320 is actually 640
+    video_resolution = 360 # Apple's i320 videos have actually a width of 640 -- (640/16)*9 = 360
   else:
     width = int(resolution.group(2))
     video_resolution = int((width/16)*9)
 
-  return [container, ipod, str(video_resolution)]
+  return [ipod, container, str(video_resolution)]
+
+####################################################################################################
+def BuildXmlUrl(url):
+  studio, title, video = re.findall('^http://trailers\.apple\.com/trailers/([^/]+)/([^/#]+)/?#?(.+)?$', url)[0]
+  if not video: video = 'index'
+  xml_url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
+  return xml_url
