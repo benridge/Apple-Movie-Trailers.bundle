@@ -36,7 +36,7 @@ def MainMenu():
 
   oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title='Just Added'))
   oc.add(DirectoryObject(key=Callback(JsonMenu, name='exclusive'), title='Exclusive'))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title='Just HD', thumb=R(ICON_PREFS)))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title='Just HD', thumb=R('thumb-just_hd.png')))
   oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title='Most Popular'))
 #  oc.add(DirectoryObject(key=Callback(GenresMenu), title='Genres'))
 #  oc.add(DirectoryObject(key=Callback(StudiosMenu), title='Movie Studios'))
@@ -73,6 +73,7 @@ def Videos(url, title):
     xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
     studio, title, video = re.findall('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$', xml_url)[0]
     canonical_url = CANONICAL_URL % (studio, title, video)
+    Log("canonical_url --> " + canonical_url)
 
     # Add the video.
     video = URLService.MetadataObjectForURL(canonical_url)
