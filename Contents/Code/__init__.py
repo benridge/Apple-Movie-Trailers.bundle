@@ -4,7 +4,7 @@ AMT_SITE_URL   = 'http://trailers.apple.com'
 AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
 AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?callback=searchCallback&q=%s'
 AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
-CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/?v=%s'
+CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
 
 ART         = 'art-default.jpg'
