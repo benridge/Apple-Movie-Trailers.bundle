@@ -140,9 +140,12 @@ def Videos(sender, url, thumb):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
   try:
-    xml = XML.ElementFromURL(AMT_VIDEOS % (url.replace('trailers', 's'), 'index'), errors='ignore')
+    xml = HTTP.Request(AMT_VIDEOS % (url.replace('trailers', 's'), 'index')).content
   except:
-    xml = XML.ElementFromURL(AMT_VIDEOS % (url.replace('trailers', 's'), 'trailer'), errors='ignore')
+    xml = HTTP.Request(AMT_VIDEOS % (url.replace('trailers', 's'), 'trailer')).content
+
+  xml = xml.replace('&ndash;', '&#8211;').replace('&mdash;', '&#8212;')
+  xml = XML.ElementFromString(xml)
 
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
