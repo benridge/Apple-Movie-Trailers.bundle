@@ -3,7 +3,7 @@ import re
 AMT_SITE_URL   = 'http://trailers.apple.com'
 AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
 AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
-AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
+AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%s%s.xml'
 AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
 
 ART          = 'art-default.jpg'
@@ -139,7 +139,11 @@ def Search(sender, query):
 def Videos(sender, url, thumb):
   dir = MediaContainer(viewGroup='InfoList', title2=sender.itemTitle)
 
-  xml = XML.ElementFromURL(AMT_VIDEOS % url.replace('trailers', 's'), errors='ignore')
+  try:
+    xml = XML.ElementFromURL(AMT_VIDEOS % (url.replace('trailers', 's'), 'index'), errors='ignore')
+  except:
+    xml = XML.ElementFromURL(AMT_VIDEOS % (url.replace('trailers', 's'), 'trailer'), errors='ignore')
+
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
