@@ -163,7 +163,14 @@ def PlayVideo(sender, url):
   pref_value = PREF_MAP[user_quality]
   available = {}
 
-  for res in XML.ElementFromURL(url).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
+  try:
+    xml = HTTP.Request(url).content
+  except:
+    # In the rare case the given url doesn't exist, fall back on 'index.xml'
+    url = re.sub('([a-z0-9]+)\.xml$'), 'index.xml', url)
+    xml = HTTP.Request(url).content
+
+  for res in XML.ElementFromString(xml).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
     video_url = res.xpath('./a:key[text()="previewURL"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
     q = re.search('_h(320|480|640w|480p|720p|1080p)\.mov$', video_url)
     if q:
