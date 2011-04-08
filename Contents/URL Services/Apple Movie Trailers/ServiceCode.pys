@@ -50,7 +50,8 @@ def MediaObjectsForURL(url):
 
     items.append(mo)
 
-  return items.reverse()
+  items.reverse()
+  return items
 
 ####################################################################################################
 def VideoInfo(url):
