@@ -6,17 +6,24 @@ AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
 ####################################################################################################
 def MetadataObjectForURL(url):
   xml = XML.ElementFromURL(BuildXmlUrl(url), cacheTime=7200, errors='ignore')
+
+  movie_title = xml.xpath('//a:TrackList//a:array/a:dict[1]/a:key[text()="playlistName"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
+  subtitle = xml.xpath('//a:TrackList//a:array/a:dict[1]/a:key[text()="songName"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text.rsplit(' (', 1)[0]
+  title = movie_title + ' (' + subtitle + ')'
+  Log("title --> " + title)
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
-  for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
-    title = video.xpath('.//parent::a:HBoxView//a:b', namespaces=AMT_VIDEOS_NS)[0].text
+  # Poster
+  try:
+    thumb = xml.xpath('//a:PictureView[contains(@url, "poster.jpg") or contains(@url, "poster-large.jpg")]', namespaces=AMT_VIDEOS_NS)[0].get('url')
+  except:
+    thumb = None
 
   # Construct a metadata item
   return MovieObject(
     title = title,
     summary = summary,
-    tagline = '',
-    thumb = ''
+    thumb = thumb
   )
 
 ####################################################################################################
@@ -48,6 +55,8 @@ def MediaObjectsForURL(url):
       duration = int(duration)
     )
 
+    Log("mediaobject --> ")
+    Log(mo)
     items.append(mo)
 
   items.reverse()
@@ -79,6 +88,6 @@ def VideoInfo(url):
 ####################################################################################################
 def BuildXmlUrl(url):
   studio, title, video = re.findall('^http://trailers\.apple\.com/trailers/([^/]+)/([^/#]+)/?#?(.+)?$', url)[0]
-  if not video: video = 'index'
+  if not video: video = 'trailer'
   xml_url = 'http://trailers.apple.com/moviesxml/s/%s/%s/%s.xml' % (studio, title, video)
   return xml_url
