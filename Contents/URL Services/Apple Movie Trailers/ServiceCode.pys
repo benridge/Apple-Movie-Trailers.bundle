@@ -55,8 +55,6 @@ def MediaObjectsForURL(url):
       duration = int(duration)
     )
 
-    Log("mediaobject --> ")
-    Log(mo)
     items.append(mo)
 
   items.reverse()
@@ -83,7 +81,12 @@ def VideoInfo(url):
     width = int(resolution.group(2))
     video_resolution = int((width/16)*9)
 
-  return [ipod, container, str(video_resolution)]
+  if video_resolution in [576, 480, 720, 1080]:
+    video_resolution = str(video_resolution)
+  else:
+    video_resolution = 'sd'
+
+  return [ipod, container, video_resolution]
 
 ####################################################################################################
 def BuildXmlUrl(url):
