@@ -10,7 +10,6 @@ def MetadataObjectForURL(url):
   movie_title = xml.xpath('//a:TrackList//a:array/a:dict[1]/a:key[text()="playlistName"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
   subtitle = xml.xpath('//a:TrackList//a:array/a:dict[1]/a:key[text()="songName"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text.rsplit(' (', 1)[0]
   title = movie_title + ' (' + subtitle + ')'
-  Log("title --> " + title)
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
 
   # Poster
@@ -72,7 +71,9 @@ def VideoInfo(url):
 
   # For HD videos: use the given height (480, 720, 1080)
   # For SD videos: use a 16x9 AR when calculating the approximate height of a video for videos we know the width of
+  #
   resolution = re.search('_(h|i)([0-9]+)(w|p)?\.(mov|m4v)', url)
+  
   if resolution.group(3) == 'p':
     video_resolution = resolution.group(2)
   elif resolution.group(1) == 'i' and resolution.group(2) == '320':
@@ -81,7 +82,7 @@ def VideoInfo(url):
     width = int(resolution.group(2))
     video_resolution = int((width/16)*9)
 
-  if video_resolution in [576, 480, 720, 1080]:
+  if int(video_resolution) in [576, 480, 720, 1080]:
     video_resolution = str(video_resolution)
   else:
     video_resolution = 'sd'
