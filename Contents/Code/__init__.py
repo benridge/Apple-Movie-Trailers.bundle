@@ -145,6 +145,7 @@ def Videos(sender, url, thumb):
     xml = HTTP.Request(AMT_VIDEOS % (url.replace('trailers', 's'), 'trailer')).content
 
   xml = xml.replace('&ndash;', '&#8211;').replace('&mdash;', '&#8212;')
+  xml = re.sub('&(?!amp;)', '&amp;', xml) # Replace & with &amp;
   xml = XML.ElementFromString(xml)
 
   summary = xml.xpath('//a:ScrollView//comment()[contains(.,"DESCRIPTION")]/following-sibling::a:TextView[1]/a:SetFontStyle', namespaces=AMT_VIDEOS_NS)[0].text.strip()
