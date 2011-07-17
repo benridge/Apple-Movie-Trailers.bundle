@@ -172,6 +172,7 @@ def PlayVideo(sender, url):
     xml = HTTP.Request(url).content
 
   xml = xml.replace('&ndash;', '&#8211;').replace('&mdash;', '&#8212;')
+  xml = re.sub('&(?!amp;)', '&amp;', xml) # Replace & with &amp;
 
   for res in XML.ElementFromString(xml).xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS):
     video_url = res.xpath('./a:key[text()="previewURL"]/following-sibling::*[1]', namespaces=AMT_VIDEOS_NS)[0].text
