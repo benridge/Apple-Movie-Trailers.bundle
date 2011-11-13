@@ -2,7 +2,6 @@ import re
 
 AMT_SITE_URL   = 'http://trailers.apple.com'
 AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
-AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?callback=searchCallback&q=%s'
 AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
 CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
@@ -40,8 +39,7 @@ def MainMenu():
   oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title=L('most_pop')))
   oc.add(DirectoryObject(key=Callback(GenresMenu), title=L('genres')))
   oc.add(DirectoryObject(key=Callback(StudiosMenu), title=L('movie_studios')))
-#  oc.add(InputDirectoryObject(key=Callback(Search), title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
-#  oc.add(PrefsObject(title='Preferences', thumb=R(ICON_PREFS)))
+  oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
 
   return oc
 

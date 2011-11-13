@@ -33,5 +33,13 @@
 	<array>
 		<string>H.264</string>
 	</array>
+	<key>PlexSearchServices</key>
+	<dict>
+		<key>Apple Movie Trailers</key>
+		<dict>
+			<key>Identifier</key>
+			<string>com.plexapp.plugins.amt</string>
+		</dict>
+	</dict>
 </dict>
 </plist>
