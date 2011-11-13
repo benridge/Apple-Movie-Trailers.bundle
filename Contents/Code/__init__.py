@@ -18,13 +18,12 @@ def Start():
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
+  ObjectContainer.art = R(ART)
+  ObjectContainer.content = ContainerContent.GenericVideos
   ObjectContainer.title1 = 'Apple Movie Trailers'
   ObjectContainer.user_agent = 'Apple Mac OS X v10.6.7 CoreMedia v1.0.0.10J869'
-  ObjectContainer.art = R(ART)
   DirectoryObject.thumb = R(ICON)
   VideoClipObject.thumb = R(ICON)
-
-  ObjectContainer.content = ContainerContent.GenericVideos
 
   HTTP.CacheTime = 7200
   HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
