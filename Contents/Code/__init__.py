@@ -34,12 +34,12 @@ def Start():
 def MainMenu():
   oc = ObjectContainer(view_group='List')
 
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title='Just Added'))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='exclusive'), title='Exclusive'))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title='Just HD', thumb=R('thumb-just_hd.png')))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title='Most Popular'))
-#  oc.add(DirectoryObject(key=Callback(GenresMenu), title='Genres'))
-#  oc.add(DirectoryObject(key=Callback(StudiosMenu), title='Movie Studios'))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title=L('just_added')))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='exclusive'), title=L('exclusive')))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title=L('just_hd'), thumb=R('thumb-just_hd.png')))
+  oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title=L('most_pop')))
+  oc.add(DirectoryObject(key=Callback(GenresMenu), title=L('genres')))
+  oc.add(DirectoryObject(key=Callback(StudiosMenu), title=L('movie_studios')))
 #  oc.add(InputDirectoryObject(key=Callback(Search), title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
 #  oc.add(PrefsObject(title='Preferences', thumb=R(ICON_PREFS)))
 
@@ -58,24 +58,88 @@ def JsonMenu(name):
   return oc
 
 ####################################################################################################
+def GenresMenu():
+  oc = ObjectContainer(view_group='List', title2=L('genres'))
+  genres = []
+
+  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'genres'):
+    for genre in trailer['genre']:
+      if genre not in genres:
+        genres.append(genre)
+
+  genres.sort()
+
+  for genre in genres:
+    oc.add(DirectoryObject(key=Callback(GenreMenu, genre=genre), title=genre))
+
+  return oc
+
+####################################################################################################
+def GenreMenu(genre):
+  oc = ObjectContainer(view_group='List', title2=genre)
+
+  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'genres'):
+    if genre in trailer['genre']:
+      url   = trailer['location']
+      title = trailer['title']
+      thumb = trailer['poster']
+      oc.add(DirectoryObject(key=Callback(Videos, url=url, title=title), title=title, thumb=Callback(Thumb, url=thumb)))
+
+  return oc
+
+####################################################################################################
+def StudiosMenu():
+  oc = ObjectContainer(view_group='List', title2=L('genres'))
+  studios = []
+
+  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'studios'):
+    if trailer['studio'] not in studios:
+      studios.append(trailer['studio'])
+
+  studios.sort()
+
+  for studio in studios:
+    oc.add(DirectoryObject(key=Callback(StudioMenu, studio=studio), title=studio))
+
+  return oc
+
+####################################################################################################
+def StudioMenu(studio):
+  oc = ObjectContainer(view_group='List', title2=studio)
+
+  for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'studios'):
+    if studio == trailer['studio']:
+      url   = trailer['location']
+      title = trailer['title']
+      thumb = trailer['poster']
+      oc.add(DirectoryObject(key=Callback(Videos, url=url, title=title), title=title, thumb=Callback(Thumb, url=thumb)))
+
+  return oc
+
+####################################################################################################
 def Videos(url, title):
   oc = ObjectContainer(view_group='InfoList', title2=title)
+  url = AMT_VIDEOS % url.replace('trailers', 's')
 
-  xml = XML.ElementFromURL(AMT_VIDEOS % url.replace('trailers', 's'), errors='ignore')
+  try:
+    xml = XML.ElementFromURL(url)
+  except:
+    try:
+      xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'))
+    except:
+      Log("Couldn't find an xml file.")
+      return oc
+
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
-
-    # Figure out the override title.
-    title = video.xpath('.//parent::a:HBoxView//a:b', namespaces=AMT_VIDEOS_NS)[0].text
 
     # Get the URL and compute the canonical URL.
     xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
     studio, title, video = re.findall('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$', xml_url)[0]
     canonical_url = CANONICAL_URL % (studio, title, video)
-    Log("canonical_url --> " + canonical_url)
+    #Log("canonical_url --> " + canonical_url)
 
     # Add the video.
     video = URLService.MetadataObjectForURL(canonical_url)
-    video.title = title
     oc.add(video)
 
   return oc
