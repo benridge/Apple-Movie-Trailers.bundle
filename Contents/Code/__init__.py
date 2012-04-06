@@ -136,8 +136,11 @@ def Videos(url, title):
     #Log("canonical_url --> " + canonical_url)
 
     # Add the video.
-    video = URLService.MetadataObjectForURL(canonical_url)
-    oc.add(video)
+    try:
+      video = URLService.MetadataObjectForURL(canonical_url)
+      oc.add(video)
+    except:
+      pass
 
   return oc
 
