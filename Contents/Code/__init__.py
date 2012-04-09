@@ -5,6 +5,7 @@ AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
 AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
 CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
+XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.6'}
 
 ART         = 'art-default.jpg'
 ICON        = 'logo.png'
@@ -119,10 +120,10 @@ def Videos(url, title):
   url = AMT_VIDEOS % url.replace('trailers', 's')
 
   try:
-    xml = XML.ElementFromURL(url)
+    xml = XML.ElementFromURL(url, headers=XML_HTTP_HEADERS)
   except:
     try:
-      xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'))
+      xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'), headers=XML_HTTP_HEADERS)
     except:
       Log("Couldn't find an xml file.")
       return oc
