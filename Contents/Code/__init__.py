@@ -126,7 +126,7 @@ def Videos(url, title):
       xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'), headers=XML_HTTP_HEADERS)
     except:
       Log("Couldn't find an xml file.")
-      return oc
+      return MessageContainer(header="Empty", message="There aren't any items.")
 
   for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
 
@@ -143,7 +143,10 @@ def Videos(url, title):
     except:
       pass
 
-  return oc
+  if len(oc) == 0:
+    return MessageContainer(header="Empty", message="There aren't any items")
+  else:
+    return oc
 
 ####################################################################################################
 def Thumb(url):
