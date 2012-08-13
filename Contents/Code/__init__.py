@@ -1,11 +1,11 @@
-import re
-
-AMT_SITE_URL   = 'http://trailers.apple.com'
-AMT_JSON_URL   = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
-AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
-CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/#%s'
-AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
-XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.6'}
+AMT_SITE_URL     = 'http://trailers.apple.com'
+AMT_JSON_URL     = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
+AMT_VIDEOS       = 'http://trailers.apple.com/moviesxml/%s/index.xml'
+AMT_WEB_PLAYLIST = 'http://trailers.apple.com/%s/includes/playlists/web.inc'
+CANONICAL_URL    = 'http://trailers.apple.com/trailers/%s/%s/#%s'
+AMT_VIDEOS_NS    = {'a':'http://www.apple.com/itms/'}
+XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.6.3'}
+RE_XML_URL       = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 
 ART         = 'art-default.jpg'
 ICON        = 'logo.png'
@@ -14,6 +14,7 @@ ICON_PREFS  = 'icon-prefs.png'
 
 ####################################################################################################
 def Start():
+
   # Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
   Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', 'icon-default.png', ART)
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
@@ -22,15 +23,15 @@ def Start():
   ObjectContainer.art = R(ART)
   ObjectContainer.content = ContainerContent.GenericVideos
   ObjectContainer.title1 = 'Apple Movie Trailers'
-  ObjectContainer.user_agent = 'Apple Mac OS X v10.6.7 CoreMedia v1.0.0.10J869'
   DirectoryObject.thumb = R(ICON)
   VideoClipObject.thumb = R(ICON)
 
-  HTTP.CacheTime = 7200
-  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_7; en-us) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27'
+  HTTP.CacheTime = CACHE_1HOUR
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.25 (KHTML, like Gecko) Version/6.0 Safari/536.25'
 
 ####################################################################################################
 def MainMenu():
+
   oc = ObjectContainer(view_group='List')
 
   oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title=L('just_added')))
@@ -45,6 +46,7 @@ def MainMenu():
 
 ####################################################################################################
 def JsonMenu(name):
+
   oc = ObjectContainer(view_group='List', title2=L(name))
 
   for trailer in JSON.ObjectFromURL(AMT_JSON_URL % name):
@@ -57,6 +59,7 @@ def JsonMenu(name):
 
 ####################################################################################################
 def GenresMenu():
+
   oc = ObjectContainer(view_group='List', title2=L('genres'))
   genres = []
 
@@ -74,6 +77,7 @@ def GenresMenu():
 
 ####################################################################################################
 def GenreMenu(genre):
+
   oc = ObjectContainer(view_group='List', title2=genre)
 
   for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'genres'):
@@ -87,6 +91,7 @@ def GenreMenu(genre):
 
 ####################################################################################################
 def StudiosMenu():
+
   oc = ObjectContainer(view_group='List', title2=L('genres'))
   studios = []
 
@@ -103,6 +108,7 @@ def StudiosMenu():
 
 ####################################################################################################
 def StudioMenu(studio):
+
   oc = ObjectContainer(view_group='List', title2=studio)
 
   for trailer in JSON.ObjectFromURL(AMT_JSON_URL % 'studios'):
@@ -116,40 +122,83 @@ def StudioMenu(studio):
 
 ####################################################################################################
 def Videos(url, title):
+
   oc = ObjectContainer(view_group='InfoList', title2=title)
-  url = AMT_VIDEOS % url.replace('trailers', 's')
+
+  url = url.strip('/')
+  xml_url = AMT_VIDEOS % url.replace('trailers', 's')
 
   try:
-    xml = XML.ElementFromURL(url, headers=XML_HTTP_HEADERS)
+    xml = XML.ElementFromURL(xml_url, headers=XML_HTTP_HEADERS)
   except:
     try:
-      xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'), headers=XML_HTTP_HEADERS)
+      xml = XML.ElementFromURL(xml_url.replace('index.xml', 'trailer.xml'), headers=XML_HTTP_HEADERS)
     except:
-      Log("Couldn't find an xml file.")
-      return MessageContainer(header="Empty", message="There aren't any items.")
+      Log(" --> Couldn't find an xml file.")
+      return ObjectContainer(header="Empty", message="There aren't any items.")
 
-  for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
+  tracklist = xml.xpath('//a:TrackList//a:array/a:dict', namespaces=AMT_VIDEOS_NS)
 
-    # Get the URL and compute the canonical URL.
-    xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
-    studio, title, video = re.findall('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$', xml_url)[0]
-    canonical_url = CANONICAL_URL % (studio, title, video)
-    #Log("canonical_url --> " + canonical_url)
+  if len(tracklist) > 0:
+    for clip in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
 
-    # Add the video.
-    try:
-      video = URLService.MetadataObjectForURL(canonical_url)
-      oc.add(video)
-    except:
-      pass
+      # Get the URL and compute the canonical URL.
+      xml_url = clip.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
+      studio, title, video = RE_XML_URL.findall(xml_url)[0]
+      canonical_url = CANONICAL_URL % (studio, title, video)
+      Log(" --> Canonical url: %s" % canonical_url)
+
+      # Add the video.
+      try:
+        video = URLService.MetadataObjectForURL(canonical_url)
+        oc.add(video)
+      except:
+        pass
 
   if len(oc) == 0:
-    return MessageContainer(header="Empty", message="There aren't any items")
+    Log(" --> Couldn't find any video in the xml file(s), going to do a web/playlist lookup.")
+    junk, studio, title = url.split('/')
+
+    inc_url = AMT_WEB_PLAYLIST % url
+    playlist = HTTP.Request(inc_url).content
+    html = HTML.ElementFromString('<div>%s</div>' % playlist)
+
+    # If we have a big "Watch Now" link, there is just 1 trailer and the HTML looks different from where we have multiple videos.
+    if len(html.xpath('//h2//a[contains(text(), "Watch Now")]')) == 1:
+      video = html.xpath('//h3')[0].text
+      video = '%s%s' % (String.Quote(video), '/web')
+      canonical_url = CANONICAL_URL % (studio, title, video)
+      Log(" --> Canonical url: %s" % canonical_url)
+
+      # Add the video.
+      try:
+        video = URLService.MetadataObjectForURL(canonical_url)
+        oc.add(video)
+      except:
+        pass
+
+    else:
+      for clip in html.xpath('//li[contains(@class, "trailer")]'):
+        video = clip.xpath('.//h3')[0].text
+        video = '%s%s' % (String.Quote(video), '/web')
+        canonical_url = CANONICAL_URL % (studio, title, video)
+        Log(" --> Canonical url: %s" % canonical_url)
+
+        # Add the video.
+        try:
+          video = URLService.MetadataObjectForURL(canonical_url)
+          oc.add(video)
+        except:
+          pass
+
+  if len(oc) == 0:
+    return ObjectContainer(header="Empty", message="There aren't any items")
   else:
     return oc
 
 ####################################################################################################
 def Thumb(url):
+
   try:
     large_thumb = url.replace('.jpg', '-large.jpg')
     data = HTTP.Request(large_thumb, cacheTime=CACHE_1MONTH).content
