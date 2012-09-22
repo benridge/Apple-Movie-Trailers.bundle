@@ -8,9 +8,8 @@ XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.7'}
 RE_XML_URL       = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 
 # Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
-ART         = 'art-default.jpg'
-ICON        = 'logo.png'
-ICON_SEARCH = 'icon-search.png'
+ART = 'art-default.jpg'
+ICON = 'icon-default.png'
 
 ####################################################################################################
 def Start():
@@ -35,11 +34,11 @@ def MainMenu():
 
   oc.add(DirectoryObject(key=Callback(Categories, name='just_added'), title=L('just_added')))
   oc.add(DirectoryObject(key=Callback(Categories, name='exclusive'), title=L('exclusive')))
-  oc.add(DirectoryObject(key=Callback(Categories, name='just_hd'), title=L('just_hd'), thumb=R('thumb-just_hd.png')))
+  oc.add(DirectoryObject(key=Callback(Categories, name='just_hd'), title=L('just_hd'), thumb=R('icon-justhd.png')))
   oc.add(DirectoryObject(key=Callback(Categories, name='most_pop'), title=L('most_pop')))
   oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
   oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
-  oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
+  oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', thumb=R('icon-search.png')))
 
   return oc
 
