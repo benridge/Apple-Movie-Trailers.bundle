@@ -1,39 +1,39 @@
-import re
-
 AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
-AMT_VIDEOS     = 'http://trailers.apple.com/moviesxml%sindex.xml'
-CANONICAL_URL  = 'http://trailers.apple.com/trailers/%s/%s/#%s'
-AMT_VIDEOS_NS  = {'a':'http://www.apple.com/itms/'}
+AMT_VIDEOS = 'http://trailers.apple.com/moviesxml%sindex.xml'
+CANONICAL_URL = 'http://trailers.apple.com/trailers/%s/%s/#%s'
+AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
+RE_XML = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 
 ####################################################################################################
 def Search(query):
-  oc = ObjectContainer(title2='Search Results')
-  trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % query)
 
-  if trailers['error'] == False:
-    for trailer in trailers['results']:
-      url = trailer['location']
-      url = AMT_VIDEOS % url.replace('trailers', 's')
+	oc = ObjectContainer()
+	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % query)
 
-      try:
-        xml = XML.ElementFromURL(url)
-      except:
-        try:
-          xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'))
-        except:
-          Log("Couldn't find an xml file.")
-          return oc
+	if trailers['error'] == False:
+		for trailer in trailers['results']:
+			url = trailer['location']
+			url = AMT_VIDEOS % url.replace('trailers', 's')
 
-      for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
+			try:
+				xml = XML.ElementFromURL(url)
+			except:
+				try:
+					xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'))
+				except:
+					Log("Couldn't find an xml file.")
+					return oc
 
-        # Get the URL and compute the canonical URL.
-        xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
-        studio, title, video = re.findall('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$', xml_url)[0]
-        canonical_url = CANONICAL_URL % (studio, title, video)
-        #Log("canonical_url --> " + canonical_url)
+			for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
 
-        # Add the video.
-        video = URLService.MetadataObjectForURL(canonical_url)
-        oc.add(video)
+				# Get the URL and compute the canonical URL.
+				xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
+				studio, title, video = RE_XML.findall(xml_url)[0]
+				canonical_url = CANONICAL_URL % (studio, title, video)
+				#Log("canonical_url --> " + canonical_url)
 
-  return oc
+				# Add the video.
+				video = URLService.MetadataObjectForURL(canonical_url)
+				oc.add(video)
+
+	return oc
