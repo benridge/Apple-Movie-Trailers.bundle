@@ -4,19 +4,17 @@ AMT_VIDEOS       = 'http://trailers.apple.com/moviesxml/%s/index.xml'
 AMT_WEB_PLAYLIST = 'http://trailers.apple.com/%s/includes/playlists/web.inc'
 CANONICAL_URL    = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 AMT_VIDEOS_NS    = {'a':'http://www.apple.com/itms/'}
-XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.6.3'}
+XML_HTTP_HEADERS = {'User-Agent':'iTunes/10.7'}
 RE_XML_URL       = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 
+# Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
 ART         = 'art-default.jpg'
 ICON        = 'logo.png'
 ICON_SEARCH = 'icon-search.png'
-ICON_PREFS  = 'icon-prefs.png'
 
 ####################################################################################################
 def Start():
 
-  # Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
-  Plugin.AddPrefixHandler('/video/amt', MainMenu, 'Apple Movie Trailers', 'icon-default.png', ART)
   Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
   Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
@@ -27,25 +25,27 @@ def Start():
   VideoClipObject.thumb = R(ICON)
 
   HTTP.CacheTime = CACHE_1HOUR
-  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.25 (KHTML, like Gecko) Version/6.0 Safari/536.25'
+  HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/536.26.14 (KHTML, like Gecko) Version/6.0.1 Safari/536.26.14'
 
 ####################################################################################################
+@handler('/video/amt', 'Apple Movie Trailers', art = ART, thumb = ICON)
 def MainMenu():
 
   oc = ObjectContainer(view_group='List')
 
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_added'), title=L('just_added')))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='exclusive'), title=L('exclusive')))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='just_hd'), title=L('just_hd'), thumb=R('thumb-just_hd.png')))
-  oc.add(DirectoryObject(key=Callback(JsonMenu, name='most_pop'), title=L('most_pop')))
-  oc.add(DirectoryObject(key=Callback(GenresMenu), title=L('genres')))
-  oc.add(DirectoryObject(key=Callback(StudiosMenu), title=L('movie_studios')))
+  oc.add(DirectoryObject(key=Callback(Categories, name='just_added'), title=L('just_added')))
+  oc.add(DirectoryObject(key=Callback(Categories, name='exclusive'), title=L('exclusive')))
+  oc.add(DirectoryObject(key=Callback(Categories, name='just_hd'), title=L('just_hd'), thumb=R('thumb-just_hd.png')))
+  oc.add(DirectoryObject(key=Callback(Categories, name='most_pop'), title=L('most_pop')))
+  oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
+  oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
   oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', thumb=R(ICON_SEARCH)))
 
   return oc
 
 ####################################################################################################
-def JsonMenu(name):
+@route('/video/amt/categories/{name}')
+def Categories(name):
 
   oc = ObjectContainer(view_group='List', title2=L(name))
 
@@ -58,7 +58,8 @@ def JsonMenu(name):
   return oc
 
 ####################################################################################################
-def GenresMenu():
+@route('/video/amt/genres')
+def Genres():
 
   oc = ObjectContainer(view_group='List', title2=L('genres'))
   genres = []
@@ -71,12 +72,13 @@ def GenresMenu():
   genres.sort()
 
   for genre in genres:
-    oc.add(DirectoryObject(key=Callback(GenreMenu, genre=genre), title=genre))
+    oc.add(DirectoryObject(key=Callback(Genre, genre=genre), title=genre))
 
   return oc
 
 ####################################################################################################
-def GenreMenu(genre):
+@route('/video/amt/genre/{genre}')
+def Genre(genre):
 
   oc = ObjectContainer(view_group='List', title2=genre)
 
@@ -90,7 +92,8 @@ def GenreMenu(genre):
   return oc
 
 ####################################################################################################
-def StudiosMenu():
+@route('/video/amt/studios')
+def Studios():
 
   oc = ObjectContainer(view_group='List', title2=L('genres'))
   studios = []
@@ -102,12 +105,13 @@ def StudiosMenu():
   studios.sort()
 
   for studio in studios:
-    oc.add(DirectoryObject(key=Callback(StudioMenu, studio=studio), title=studio))
+    oc.add(DirectoryObject(key=Callback(Studio, studio=studio), title=studio))
 
   return oc
 
 ####################################################################################################
-def StudioMenu(studio):
+@route('/video/amt/studio/{studio}')
+def Studio(studio):
 
   oc = ObjectContainer(view_group='List', title2=studio)
 
@@ -121,6 +125,7 @@ def StudioMenu(studio):
   return oc
 
 ####################################################################################################
+@route('/video/amt/videos', allow_sync = True)
 def Videos(url, title):
 
   oc = ObjectContainer(view_group='InfoList', title2=title)
