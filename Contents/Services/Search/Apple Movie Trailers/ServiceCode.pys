@@ -7,7 +7,7 @@ RE_XML = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 ####################################################################################################
 def Search(query):
 
-	oc = ObjectContainer()
+	oc = ObjectContainer(title2='Search Results', art=R('art-default.jpg'))
 	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % query)
 
 	if trailers['error'] == False:
