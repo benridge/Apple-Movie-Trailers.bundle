@@ -1,39 +1,38 @@
+AMT_SITE_URL = 'http://trailers.apple.com'
 AMT_SEARCH_URL = 'http://trailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
-AMT_VIDEOS = 'http://trailers.apple.com/moviesxml%sindex.xml'
+AMT_XML_NS = {'a':'http://www.apple.com/itms/'}
+XML_HTTP_HEADERS = {'User-Agent': 'iTunes/10.7'}
+RE_XML_URL = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 CANONICAL_URL = 'http://trailers.apple.com/trailers/%s/%s/#%s'
-AMT_VIDEOS_NS = {'a':'http://www.apple.com/itms/'}
-RE_XML = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 
 ####################################################################################################
 def Search(query):
 
-	oc = ObjectContainer(title1='Apple Movie Trailers', title2='Search Results', art=R('art-default.jpg'))
+	oc = ObjectContainer(title1='Apple Movie Trailers', title2='Search Results')
 	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % query)
 
 	if trailers['error'] == False:
 		for trailer in trailers['results']:
-			url = trailer['location']
-			url = AMT_VIDEOS % url.replace('trailers', 's')
+			url = '%s/%s/itsxml/trailer.xml' % (AMT_SITE_URL, trailer['location'].strip('/'))
 
 			try:
-				xml = XML.ElementFromURL(url)
+				xml = XML.ElementFromURL(url, headers=XML_HTTP_HEADERS)
 			except:
-				try:
-					xml = XML.ElementFromURL(url.replace('index.xml', 'trailer.xml'))
-				except:
-					Log("Couldn't find an xml file.")
-					return oc
+				Log("Couldn't find an xml file.")
+				return oc
 
-			for video in xml.xpath('//a:HBoxView/a:GotoURL', namespaces=AMT_VIDEOS_NS):
-
-				# Get the URL and compute the canonical URL.
-				xml_url = video.get('url') ### Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
-				studio, title, video = RE_XML.findall(xml_url)[0]
+			# Get the URL and compute the canonical URL.
+			# Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
+			for xml_url in xml.xpath('//a:HBoxView/a:GotoURL/@url', namespaces=AMT_XML_NS):
+				(studio, title, video) = RE_XML_URL.findall(xml_url)[0]
 				canonical_url = CANONICAL_URL % (studio, title, video)
-				#Log("canonical_url --> " + canonical_url)
+				Log(" --> Canonical url: %s" % canonical_url)
 
 				# Add the video.
-				video = URLService.MetadataObjectForURL(canonical_url)
-				oc.add(video)
+				try:
+					video = URLService.MetadataObjectForURL(canonical_url)
+					oc.add(video)
+				except:
+					pass
 
 	return oc
