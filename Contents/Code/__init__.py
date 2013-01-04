@@ -36,7 +36,8 @@ def MainMenu():
 	oc.add(DirectoryObject(key=Callback(Categories, name='most_pop'), title=L('most_pop')))
 	oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
 	oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
-	oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', term=L('Trailers')))
+#	oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', term=L('Trailers')))
+	oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', thumb=R('search.png')))
 
 	return oc
 
