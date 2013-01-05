@@ -16,7 +16,7 @@ def Search(query):
 			xml = None
 			url = '%s/%s/itsxml/%%s.xml' % (AMT_SITE_URL, trailer['location'].strip('/'))
 
-			for clip_type in ('trailer', 'teaser', 'clip', 'featurette', 'internationaltrailer', 'firstlook'):
+			for clip_type in ('trailer', 'teaser', 'clip', 'trailer1', 'featurette', 'internationaltrailer', 'firstlook'):
 				try:
 					xml = XML.ElementFromURL(url % clip_type, headers=XML_HTTP_HEADERS)
 					break

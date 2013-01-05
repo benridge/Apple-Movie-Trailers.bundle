@@ -150,7 +150,7 @@ def Videos(url, title):
 	xml = None
 	url = '%s/%s/itsxml/%%s.xml' % (AMT_SITE_URL, url.strip('/'))
 
-	for clip_type in ('trailer', 'teaser', 'clip', 'featurette', 'internationaltrailer', 'firstlook'):
+	for clip_type in ('trailer', 'teaser', 'clip', 'trailer1', 'featurette', 'internationaltrailer', 'firstlook'):
 		try:
 			xml = XML.ElementFromURL(url % clip_type, headers=XML_HTTP_HEADERS)
 			break
