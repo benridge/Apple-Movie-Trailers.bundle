@@ -32,7 +32,6 @@ def MainMenu():
 
 	oc.add(DirectoryObject(key=Callback(Categories, name='just_added'), title=L('just_added')))
 	oc.add(DirectoryObject(key=Callback(Categories, name='exclusive'), title=L('exclusive')))
-	oc.add(DirectoryObject(key=Callback(Categories, name='just_hd'), title=L('just_hd'), thumb=R('icon-justhd.png')))
 	oc.add(DirectoryObject(key=Callback(Categories, name='most_pop'), title=L('most_pop')))
 	oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
 	oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
