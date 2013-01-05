@@ -9,17 +9,22 @@ CANONICAL_URL = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 def Search(query):
 
 	oc = ObjectContainer(title1='Apple Movie Trailers', title2='Search Results')
-	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % query)
+	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % String.Quote(query))
 
 	if trailers['error'] == False:
 		for trailer in trailers['results']:
-			url = '%s/%s/itsxml/trailer.xml' % (AMT_SITE_URL, trailer['location'].strip('/'))
+			xml = None
+			url = '%s/%s/itsxml/%%s.xml' % (AMT_SITE_URL, trailer['location'].strip('/'))
 
-			try:
-				xml = XML.ElementFromURL(url, headers=XML_HTTP_HEADERS)
-			except:
-				Log("Couldn't find an xml file.")
-				return oc
+			for clip_type in ('trailer', 'teaser', 'clip', 'featurette', 'internationaltrailer', 'firstlook'):
+				try:
+					xml = XML.ElementFromURL(url % clip_type, headers=XML_HTTP_HEADERS)
+					break
+				except:
+					pass
+
+			if not xml:
+				continue
 
 			# Get the URL and compute the canonical URL.
 			# Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
