@@ -148,11 +148,17 @@ def Studio(studio):
 def Videos(url, title):
 
 	oc = ObjectContainer(view_group='InfoList', title2=title)
-	url = '%s/%s/itsxml/trailer.xml' % (AMT_SITE_URL, url.strip('/'))
+	xml = None
+	url = '%s/%s/itsxml/%%s.xml' % (AMT_SITE_URL, url.strip('/'))
 
-	try:
-		xml = XML.ElementFromURL(url, headers=XML_HTTP_HEADERS)
-	except:
+	for clip_type in ('trailer', 'teaser', 'clip', 'featurette', 'internationaltrailer', 'firstlook'):
+		try:
+			xml = XML.ElementFromURL(url % clip_type, headers=XML_HTTP_HEADERS)
+			break
+		except:
+			pass
+
+	if not xml:
 		Log(" --> Couldn't find an xml file.")
 		return ObjectContainer(header="Empty", message="There aren't any items.")
 
