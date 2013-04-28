@@ -5,27 +5,20 @@ XML_HTTP_HEADERS = {'User-Agent': 'iTunes/10.7'}
 RE_XML_URL = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
 CANONICAL_URL = 'http://trailers.apple.com/trailers/%s/%s/#%s'
 
-# Current artwork.jpg free for personal use only - http://squaresailor.deviantart.com/art/Apple-Desktop-52188810
-ART = 'art-default.jpg'
-ICON = 'icon-default.png'
-
 ####################################################################################################
 def Start():
 
 	Plugin.AddViewGroup('List', viewMode='List', mediaType='items')
 	Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
-	ObjectContainer.art = R(ART)
 	ObjectContainer.content = ContainerContent.GenericVideos
 	ObjectContainer.title1 = 'Apple Movie Trailers'
-	DirectoryObject.thumb = R(ICON)
-	VideoClipObject.thumb = R(ICON)
 
 	HTTP.CacheTime = CACHE_1HOUR
 	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/536.26.17 (KHTML, like Gecko) Version/6.0.2 Safari/536.26.17'
 
 ####################################################################################################
-@handler('/video/amt', 'Apple Movie Trailers', art=ART, thumb=ICON)
+@handler('/video/amt', 'Apple Movie Trailers')
 def MainMenu():
 
 	oc = ObjectContainer(view_group='List')
@@ -53,10 +46,12 @@ def Categories(name):
 		if not thumb.startswith('http://'):
 			thumb = '%s%s' % (AMT_SITE_URL, thumb)
 
+		large_thumb = thumb.replace('.jpg', '-large.jpg')
+
 		oc.add(DirectoryObject(
 			key = Callback(Videos, url=url, title=title),
 			title = title,
-			thumb = Callback(Thumb, url=thumb)
+			thumb = Resource.ContentsOfURLWithFallback([large_thumb, thumb])
 		))
 
 	return oc
@@ -177,23 +172,7 @@ def Videos(url, title):
 		except:
 			pass
 
-	if len(oc) == 0:
+	if len(oc) < 1:
 		return ObjectContainer(header="Empty", message="There aren't any items")
-	else:
-		return oc
 
-####################################################################################################
-def Thumb(url):
-
-	try:
-		large_thumb = url.replace('.jpg', '-large.jpg')
-		data = HTTP.Request(large_thumb, cacheTime=CACHE_1MONTH).content
-		return DataObject(data, 'image/jpeg')
-	except:
-		try:
-			data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-			return DataObject(data, 'image/jpeg')
-		except:
-			pass
-
-	return Redirect(R(ICON))
+	return oc
