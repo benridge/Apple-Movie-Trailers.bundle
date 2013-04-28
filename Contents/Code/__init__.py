@@ -50,6 +50,9 @@ def Categories(name):
 		title = trailer['title']
 		thumb = trailer['poster']
 
+		if not thumb.startswith('http://'):
+			thumb = '%s%s' % (AMT_SITE_URL, thumb)
+
 		oc.add(DirectoryObject(
 			key = Callback(Videos, url=url, title=title),
 			title = title,
