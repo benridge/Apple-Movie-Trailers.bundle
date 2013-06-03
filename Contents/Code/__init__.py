@@ -1,9 +1,6 @@
 AMT_SITE_URL = 'http://trailers.apple.com'
 AMT_JSON_URL = 'http://trailers.apple.com/trailers/home/feeds/%s.json'
-AMT_XML_NS = {'a': 'http://www.apple.com/itms/'}
-XML_HTTP_HEADERS = {'User-Agent': 'iTunes/10.7'}
-RE_XML_URL = Regex('^/moviesxml/s/([^/]+)/([^/]+)/(.+)\.xml$')
-CANONICAL_URL = 'http://trailers.apple.com/trailers/%s/%s/#%s'
+ALL_VIDEOS_INC = '%s/includes/automatic.html'
 
 ####################################################################################################
 def Start():
@@ -15,7 +12,7 @@ def Start():
 	ObjectContainer.title1 = 'Apple Movie Trailers'
 
 	HTTP.CacheTime = CACHE_1HOUR
-	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/536.26.17 (KHTML, like Gecko) Version/6.0.2 Safari/536.26.17'
+	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/536.29.13 (KHTML, like Gecko) Version/6.0.4 Safari/536.29.13'
 
 ####################################################################################################
 @handler('/video/amt', 'Apple Movie Trailers')
@@ -28,7 +25,7 @@ def MainMenu():
 	oc.add(DirectoryObject(key=Callback(Categories, name='most_pop'), title=L('most_pop')))
 	oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
 	oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
-	oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for movie trailer', term=L('Trailers')))
+	oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for Movie Trailers', term=L('Trailers')))
 
 	return oc
 
@@ -46,12 +43,13 @@ def Categories(name):
 		if not thumb.startswith('http://'):
 			thumb = '%s%s' % (AMT_SITE_URL, thumb)
 
-		large_thumb = thumb.replace('.jpg', '-large.jpg')
+		thumb_large = thumb.replace('poster.jpg', 'poster-large.jpg')
+		thumb_xlarge = thumb.replace('poster.jpg', 'poster-xlarge.jpg')
 
 		oc.add(DirectoryObject(
 			key = Callback(Videos, url=url, title=title),
 			title = title,
-			thumb = Resource.ContentsOfURLWithFallback([large_thumb, thumb])
+			thumb = Resource.ContentsOfURLWithFallback([thumb_xlarge, thumb_large, thumb])
 		))
 
 	return oc
@@ -90,10 +88,16 @@ def Genre(genre):
 			title = trailer['title']
 			thumb = trailer['poster']
 
+			if not thumb.startswith('http://'):
+				thumb = '%s%s' % (AMT_SITE_URL, thumb)
+
+			thumb_large = thumb.replace('poster.jpg', 'poster-large.jpg')
+			thumb_xlarge = thumb.replace('poster.jpg', 'poster-xlarge.jpg')
+
 			oc.add(DirectoryObject(
 				key = Callback(Videos, url=url, title=title),
 				title = title,
-				thumb = Callback(Thumb, url=thumb)
+				thumb = Resource.ContentsOfURLWithFallback([thumb_xlarge, thumb_large, thumb])
 			))
 
 	return oc
@@ -131,10 +135,16 @@ def Studio(studio):
 			title = trailer['title']
 			thumb = trailer['poster']
 
+			if not thumb.startswith('http://'):
+				thumb = '%s%s' % (AMT_SITE_URL, thumb)
+
+			thumb_large = thumb.replace('poster.jpg', 'poster-large.jpg')
+			thumb_xlarge = thumb.replace('poster.jpg', 'poster-xlarge.jpg')
+
 			oc.add(DirectoryObject(
 				key = Callback(Videos, url=url, title=title),
 				title = title,
-				thumb = Callback(Thumb, url=thumb)
+				thumb = Resource.ContentsOfURLWithFallback([thumb_xlarge, thumb_large, thumb])
 			))
 
 	return oc
@@ -144,31 +154,17 @@ def Studio(studio):
 def Videos(url, title):
 
 	oc = ObjectContainer(view_group='InfoList', title2=title)
-	xml = None
-	url = '%s/%s/itsxml/%%s.xml' % (AMT_SITE_URL, url.strip('/'))
 
-	for clip_type in ('trailer', 'teaser', 'clip', 'trailer1', 'featurette', 'internationaltrailer', 'firstlook'):
+	if not url.startswith('http://'):
+		url = '%s%s' % (AMT_SITE_URL, url)
+
+	inc_html = HTML.ElementFromURL(ALL_VIDEOS_INC % url.strip('/'))
+
+	for video in inc_html.xpath('//a/h4/parent::a/@href'):
+		video = video.split('/')[1]
+
 		try:
-			xml = XML.ElementFromURL(url % clip_type, headers=XML_HTTP_HEADERS)
-			break
-		except:
-			pass
-
-	if not xml:
-		Log(" --> Couldn't find an xml file.")
-		return ObjectContainer(header="Empty", message="There aren't any items.")
-
-	# Get the URL and compute the canonical URL.
-	# Example: /moviesxml/s/disney/piratesofthecaribbeanonstrangertides/trailer2.xml
-	for xml_url in xml.xpath('//a:HBoxView/a:GotoURL/@url', namespaces=AMT_XML_NS):
-		(studio, title, video) = RE_XML_URL.findall(xml_url)[0]
-		canonical_url = CANONICAL_URL % (studio, title, video)
-		Log(" --> Canonical url: %s" % canonical_url)
-
-		# Add the video.
-		try:
-			video = URLService.MetadataObjectForURL(canonical_url)
-			oc.add(video)
+			oc.add(URLService.MetadataObjectForURL('%s#%s' % (url, video)))
 		except:
 			pass
 
