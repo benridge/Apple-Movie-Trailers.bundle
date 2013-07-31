@@ -26,7 +26,7 @@ def MainMenu():
 	oc.add(DirectoryObject(key=Callback(Genres), title=L('genres')))
 	oc.add(DirectoryObject(key=Callback(Studios), title=L('movie_studios')))
 
-	if Client.Product and Client.Product not in ('PlexConnect'):
+	if Client.Product != 'PlexConnect':
 		oc.add(SearchDirectoryObject(identifier='com.plexapp.plugins.amt', title='Search Trailers', prompt='Search for Movie Trailers', term=L('Trailers')))
 
 	return oc
