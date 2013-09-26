@@ -164,7 +164,7 @@ def Videos(url, title):
 
 	inc_html = HTML.ElementFromURL(ALL_VIDEOS_INC % url.strip('/'))
 
-	for video in inc_html.xpath('//a/h4/parent::a/@href'):
+	for video in inc_html.xpath('//a[contains(@href, "includes/") and (contains(@class, "block") or contains(@class, "link-play"))]/@href'):
 		video = video.split('/')[1]
 
 		try:
