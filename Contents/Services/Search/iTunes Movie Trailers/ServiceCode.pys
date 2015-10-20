@@ -8,7 +8,7 @@ AMT_SEARCH_URL = 'http://movietrailers.apple.com/trailers/home/scripts/quickfind
 ####################################################################################################
 def Search(query):
 
-	oc = ObjectContainer(title1='Apple Movie Trailers', title2='Search Results')
+	oc = ObjectContainer(title1='iTunes Movie Trailers', title2='Search Results')
 	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % String.Quote(query), headers=HTTP_HEADERS)
 
 	if trailers['error'] == False:

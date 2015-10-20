@@ -4,12 +4,12 @@ ALL_VIDEOS_INC = '%s/includes/automatic.html'
 ####################################################################################################
 def Start():
 
-	ObjectContainer.title1 = 'Apple Movie Trailers'
+	ObjectContainer.title1 = 'iTunes Movie Trailers'
 	HTTP.CacheTime = CACHE_1HOUR
 	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1'
 
 ####################################################################################################
-@handler('/video/amt', 'Apple Movie Trailers')
+@handler('/video/amt', 'iTunes Movie Trailers')
 def MainMenu():
 
 	oc = ObjectContainer()
