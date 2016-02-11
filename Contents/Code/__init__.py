@@ -1,12 +1,14 @@
-AMT_JSON_URL = 'http://movietrailers.apple.com/trailers/home/feeds/%s.json'
-ALL_VIDEOS_INC = '%s/includes/automatic.html'
+ITUNES_JSON_URL = 'http://movietrailers.apple.com/trailers/home/feeds/%s.json'
+MOVIE_JSON_URL = 'http://movietrailers.apple.com/trailers/%s/%s/data/page.json'
+MOVIE_URL = 'http://movietrailers.apple.com/trailers/%s/%s/#%s'
+RE_URL_INFO = Regex('trailers\/([^\/]+)\/([^\/]+)')
 
 ####################################################################################################
 def Start():
 
 	ObjectContainer.title1 = 'iTunes Movie Trailers'
 	HTTP.CacheTime = CACHE_1HOUR
-	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1'
+	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4'
 
 ####################################################################################################
 @handler('/video/amt', 'iTunes Movie Trailers')
@@ -29,7 +31,8 @@ def Categories(name):
 
 	oc = ObjectContainer(title2=L(name))
 
-	for trailer in JSON.ObjectFromURL(AMT_JSON_URL % (name)):
+	for trailer in JSON.ObjectFromURL(ITUNES_JSON_URL % (name)):
+
 		url = trailer['location']
 		title = trailer['title']
 		thumb = trailer['poster']
@@ -55,14 +58,17 @@ def Genres():
 	oc = ObjectContainer(title2=L('genres'))
 	genres = []
 
-	for trailer in JSON.ObjectFromURL(AMT_JSON_URL % ('genres')):
+	for trailer in JSON.ObjectFromURL(ITUNES_JSON_URL % ('genres')):
+
 		for genre in trailer['genre']:
+
 			if genre not in genres:
 				genres.append(genre)
 
 	genres.sort()
 
 	for genre in genres:
+
 		oc.add(DirectoryObject(
 			key = Callback(Genre, genre=genre),
 			title = genre
@@ -76,8 +82,10 @@ def Genre(genre):
 
 	oc = ObjectContainer(title2=genre)
 
-	for trailer in JSON.ObjectFromURL(AMT_JSON_URL % ('genres')):
+	for trailer in JSON.ObjectFromURL(ITUNES_JSON_URL % ('genres')):
+
 		if genre in trailer['genre']:
+
 			url = trailer['location']
 			title = trailer['title']
 			thumb = trailer['poster']
@@ -103,13 +111,15 @@ def Studios():
 	oc = ObjectContainer(title2=L('genres'))
 	studios = []
 
-	for trailer in JSON.ObjectFromURL(AMT_JSON_URL % ('studios')):
+	for trailer in JSON.ObjectFromURL(ITUNES_JSON_URL % ('studios')):
+
 		if trailer['studio'] not in studios:
 			studios.append(trailer['studio'])
 
 	studios.sort()
 
 	for studio in studios:
+
 		oc.add(DirectoryObject(
 			key = Callback(Studio, studio=studio),
 			title = studio
@@ -123,8 +133,10 @@ def Studio(studio):
 
 	oc = ObjectContainer(title2=studio)
 
-	for trailer in JSON.ObjectFromURL(AMT_JSON_URL % ('studios')):
+	for trailer in JSON.ObjectFromURL(ITUNES_JSON_URL % ('studios')):
+
 		if studio == trailer['studio']:
+
 			url = trailer['location']
 			title = trailer['title']
 			thumb = trailer['poster']
@@ -149,18 +161,15 @@ def Videos(url, title):
 
 	oc = ObjectContainer(title2=title)
 
-	if not url.startswith('http://'):
-		url = 'http://movietrailers.apple.com/%s' % (url.lstrip('/'))
-	else:
-		url = 'http://movietrailers.apple.com/%s' % (url.split('.apple.com/')[-1])
+	(studio, movie_title) = RE_URL_INFO.findall(url)[0]
+	json_obj = JSON.ObjectFromURL(MOVIE_JSON_URL % (studio, movie_title))
 
-	inc_html = HTML.ElementFromURL(ALL_VIDEOS_INC % url.strip('/'))
+	for clip in json_obj['clips']:
 
-	for video in inc_html.xpath('//a[contains(@href, "includes/") and (contains(@class, "block") or contains(@class, "link-play"))]/@href'):
-		video = video.split('/')[1]
+		clip_type = String.Quote(clip['title'])
 
 		try:
-			oc.add(URLService.MetadataObjectForURL('%s#%s' % (url.replace('www.apple.com', 'trailers.apple.com'), video)))
+			oc.add(URLService.MetadataObjectForURL(MOVIE_URL % (studio, movie_title, clip_type)))
 		except:
 			pass
 

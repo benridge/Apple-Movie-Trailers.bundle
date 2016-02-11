@@ -1,19 +1,17 @@
-HTTP_HEADERS = {
-	'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1'
-}
-
-AMT_SITE_URL = 'http://movietrailers.apple.com'
-AMT_SEARCH_URL = 'http://movietrailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
+ITUNES_SITE_URL = 'http://movietrailers.apple.com'
+ITUNES_SEARCH_URL = 'http://movietrailers.apple.com/trailers/home/scripts/quickfind.php?q=%s'
 
 ####################################################################################################
 def Search(query):
 
 	oc = ObjectContainer(title1='iTunes Movie Trailers', title2='Search Results')
-	trailers = JSON.ObjectFromURL(AMT_SEARCH_URL % String.Quote(query), headers=HTTP_HEADERS)
+	trailers = JSON.ObjectFromURL(ITUNES_SEARCH_URL % String.Quote(query))
 
 	if trailers['error'] == False:
+
 		for trailer in trailers['results']:
-			url = '%s/%s/#trailer' % (AMT_SITE_URL, trailer['location'].strip('/'))
+
+			url = '%s/%s/' % (ITUNES_SITE_URL, trailer['location'].strip('/'))
 
 			try:
 				oc.add(URLService.MetadataObjectForURL(url))
