@@ -1,3 +1,7 @@
+NAME= 'iTunes Movie Trailers'
+ART = 'art-default.jpg'
+ICON = 'icon-default.jpg'
+
 ITUNES_JSON_URL = 'http://movietrailers.apple.com/trailers/home/feeds/%s.json'
 MOVIE_JSON_URL = 'http://movietrailers.apple.com/trailers/%s/%s/data/page.json'
 MOVIE_URL = 'http://movietrailers.apple.com/trailers/%s/%s/#%s'
@@ -6,12 +10,12 @@ RE_URL_INFO = Regex('trailers\/([^\/]+)\/([^\/]+)')
 ####################################################################################################
 def Start():
 
-	ObjectContainer.title1 = 'iTunes Movie Trailers'
+	ObjectContainer.title1 = NAME
 	HTTP.CacheTime = CACHE_1HOUR
-	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4'
+	HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/602.4.8 (KHTML, like Gecko) Version/10.0.3 Safari/602.4.8'
 
 ####################################################################################################
-@handler('/video/amt', 'iTunes Movie Trailers')
+@handler('/video/amt', NAME, art=ART, thumb=ICON)
 def MainMenu():
 
 	oc = ObjectContainer()
